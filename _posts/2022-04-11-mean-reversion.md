@@ -33,7 +33,7 @@ the ADF checks if the $\lambda$=0 (null hypothesis). If the hypothesis can be re
 ### Example USD.CAD
 
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_8_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_8_0.png"/>
 </p>
 
 
@@ -54,9 +54,9 @@ for key, value in result[4].items():
     ADF Statistic: -1.597062
     p-value: 0.485069
     Critical Values:
-    	1%: -3.437
-    	5%: -2.865
-    	10%: -2.568
+      1%: -3.437
+      5%: -2.865
+      10%: -2.568
 
 
 We fail to reject the null hyopthesis at the 90% level, thus our time series is not mean reverting. Lambda was negative so at least we can say it is not trending.
@@ -134,13 +134,10 @@ def variance_ratio(ts, lag = 2):
     return t/(lag*b)
 ```
 
-
 ```python
 variance_ratio(x)
 ```
     1.0259343090759017
-
-
 
 ## Half-Life of Mean Reversion
 
@@ -204,22 +201,6 @@ results = model.fit()
     Notes:
     [1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
 
-
-
-```python
-results.params
-```
-
-
-
-
-    const    0.005726
-    Close   -0.005411
-    dtype: float64
-
-
-
-
 ```python
 halflife = int(-np.log(2)/results.params[1])
 print(f"Half-life of mean reversion: {halflife} days")
@@ -238,39 +219,18 @@ movingAvg = data['Close'].rolling(halflife).mean()
 movingStd = data['Close'].rolling(halflife).std()
 ```
 
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.plot(data['Close'])
-plt.plot(movingAvg, label="movingAvg")
-plt.show()
-```
-
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_29_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_29_0.png"/>
 </p>
 
 ```python
 y = data['Close']
 mktVal = -(y-movingAvg)/movingStd
-```
-
-
-```python
-pnl = mktVal.shift(1)*(y-y.shift(1))/y.shift(1) # mktvalue * daily return
-```
-
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.plot(pnl.cumsum())
-plt.ylabel("Cumulative P&L")
-plt.title("Strategy P&L")
-plt.show()
+pnl = mktVal.shift(1)*(y-y.shift(1))/y.shift(1)
 ```
 
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_32_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_32_0.png"/>
 </p>
 
 
@@ -286,46 +246,16 @@ The test first runs a linear regression between the two price series to find the
 
 
 ```python
-ewa = yf.download("EWA", start="2006-04-26", end="2012-04-09") # Australian ETF
-ewc = yf.download("EWC", start="2006-04-26", end="2012-04-09") # Canadian ETF
-```
-
-    [*********************100%***********************]  1 of 1 completed
-    [*********************100%***********************]  1 of 1 completed
-
-
-
-```python
-x,y = ewa["Adj Close"], ewc["Adj Close"]
-```
-
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.plot(x, label="EWA")
-plt.plot(y, label="EWC")
-plt.title("EWA & EWC")
-plt.ylabel("Share price $")
-plt.legend()
-plt.show()
+ewa = yf.download("EWA", start="2006-04-26", end="2012-04-09")
+ewc = yf.download("EWC", start="2006-04-26", end="2012-04-09")
 ```
 
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_38_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_38_0.png"/>
 </p>
 
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.scatter(x,y, alpha=0.4)
-plt.xlabel("EWA share price")
-plt.ylabel("EWC share price")
-plt.show()
-```
-
-
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_39_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_39_0.png"/>
 </p>
 
 
@@ -357,17 +287,8 @@ for key, value in result[4].items():
     	10%: -2.568
 
 
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.plot(portfolio)
-plt.title("Stationary Portfolio of EWC & EWA")
-plt.ylabel("EWC-hedgeRatio*EWA")
-plt.show()
-```
-
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_42_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_42_0.png"/>
 </p>
 
 
@@ -386,54 +307,14 @@ we compute the rank of matrix the $\Lambda$ and check wether we can reject the n
 
 ```python
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
-```
 
-
-```python
 ige = yf.download("IGE", start="2006-04-26", end="2012-04-09") # natural resource stock ETF
 z = ige["Adj Close"]
-```
 
-    [*********************100%***********************]  1 of 1 completed
-
-
-
-```python
-plt.figure(figsize=(10,5)) 
-plt.plot(x, label="EWA")
-plt.plot(y, label="EWC")
-plt.plot(z, label="IGE")
-plt.title("EWA & EWC & IGE")
-plt.ylabel("Share price $")
-plt.legend()
-plt.show()
-```
-
-<p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_46_0.png"/>
-</p>
-
-```python
 y3 = pd.concat([x,y,z], axis=1)
 res = coint_johansen(y3,0,1)
-```
-
-
-```python
-def joh_output(res):
-    output = pd.DataFrame([res.lr2,res.lr1],
-                          index=['max_eig_stat',"trace_stat"])
-    print(output.T,'\n')
-    print("Critical values(90%, 95%, 99%) of max_eig_stat\n",res.cvm,'\n')
-    print("Critical values(90%, 95%, 99%) of trace_stat\n",res.cvt,'\n')
-
-```
-
-
-```python
 joh_output(res)
 ```
-
        max_eig_stat  trace_stat
     0     17.804192   34.637385
     1     12.446337   16.833193
@@ -448,30 +329,23 @@ joh_output(res)
      [[27.0669 29.7961 35.4628]
      [13.4294 15.4943 19.9349]
      [ 2.7055  3.8415  6.6349]] 
+
+<p align="center">
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_46_0.png"/>
+</p>
+
     
 
 
 
 ```python
 hedge_ratios = res.evec[:,0]
-```
-
-
-```python
 yport = y3*hedge_ratios # dot product between ETFs and hedge ratios
 yport = yport.sum(axis=1)
 ```
 
-
-```python
-plt.figure(figsize=(10,5))
-plt.title("EWA & EWC & IGE Mean Reverting Portfolio")
-plt.plot(yport)
-plt.show()
-```
-
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_52_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_52_0.png"/>
 </p>
 
 
@@ -527,16 +401,6 @@ pnl = inter.sum(axis=1)
 ret = pnl/abs(positions.shift(1)).sum(axis=1)
 ```
 
-
-```python
-# cummulative returns
-plt.figure(figsize=(10,5))
-plt.plot((1+ret).cumprod() - 1)
-plt.ylabel("Cummulative returns")
-plt.title("EWA-EWC-ICG Mean-Reverting Trading Strategy")
-plt.show()
-```
-
 <p align="center">
-  <img src="{{site.baseurl | prepend: site.url}}/public/assets/test_files/test_60_0.png"/>
+  <img src="{{site.baseurl | prepend: site.url}}/public/assets/mean_reversion/test_60_0.png"/>
 </p>
